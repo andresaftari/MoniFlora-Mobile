@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "874509652120",
+    "firebase_url": "https://moniflora-7d3a3-default-rtdb.firebaseio.com",
+    "project_id": "moniflora-7d3a3",
+    "storage_bucket": "moniflora-7d3a3.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:874509652120:android:6bb866d4e46857ddf100ed",
+        "android_client_info": {
+          "package_name": "com.example.skripsyit"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDYe_4fdhX4xoQoiT6fi16r4lRoGRqF6lk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
