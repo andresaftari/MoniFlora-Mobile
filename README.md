@@ -1,3 +1,3 @@
 # skripsyit
 
-A new Flutter project.
+<!-- This app used to connect -->

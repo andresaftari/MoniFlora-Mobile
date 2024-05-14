@@ -5,7 +5,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get/route_manager.dart';
+import 'package:get/get.dart';
+import 'package:skripsyit/data/api/controller/sensor_controller.dart';
 import 'package:skripsyit/firebase_options.dart';
 import 'package:skripsyit/utils/shared_prefs.dart';
 import 'package:skripsyit/views/views.dart';
@@ -20,6 +21,7 @@ void main() async {
 
   // Init shared preferences
   await SharedPreferenceService.init();
+  Get.lazyPut(() => SensorController());
 
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,

@@ -63,7 +63,7 @@ class _AuthPageViewsState extends State<AuthPageViews> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16.r),
                     side: BorderSide(
-                      color: Colors.black,
+                      color: kAccentBlack,
                       width: 0.5.w,
                     ),
                   ),
@@ -79,7 +79,7 @@ class _AuthPageViewsState extends State<AuthPageViews> {
                       'Login with Google',
                       style: TextStyle(
                         fontSize: 14.sp,
-                        color: Colors.black,
+                        color: kAccentBlack,
                       ),
                     ),
                   ],

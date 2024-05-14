@@ -1,11 +1,24 @@
-class Sensor {
+import 'package:hive/hive.dart';
+
+part 'sensor.g.dart';
+
+@HiveType(typeId: 0)
+class Sensor extends HiveObject {
+  @HiveField(0)
   String? uuid;
+  @HiveField(1)
   final int light;
+  @HiveField(2)
   final int conductivity;
+  @HiveField(3)
   final int moisture;
+  @HiveField(4)
   final double temperature;
+  @HiveField(5)
   final String localName;
+  @HiveField(6)
   final String bioName;
+  @HiveField(7)
   final String dateTime;
 
   Sensor({
