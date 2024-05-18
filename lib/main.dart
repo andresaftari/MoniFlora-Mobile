@@ -6,18 +6,26 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:skripsyit/data/api/controller/sensor_controller.dart';
+import 'package:skripsyit/data/local/db/sensor_db.dart';
+import 'package:skripsyit/data/local/model/sensor.dart';
 import 'package:skripsyit/firebase_options.dart';
 import 'package:skripsyit/utils/shared_prefs.dart';
 import 'package:skripsyit/views/views.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Hive.initFlutter();
 
   // Init Firebase
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // Init Hive
+  Hive.registerAdapter(SensorAdapter());
+  await SensorDB.init();
 
   // Init shared preferences
   await SharedPreferenceService.init();

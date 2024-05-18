@@ -25,7 +25,12 @@ class _AuthPageViewsState extends State<AuthPageViews> {
       // log('$googleAuth: $credential', name: 'Login');
       return await FirebaseAuth.instance.signInWithCredential(credential);
     } on FirebaseAuthException catch (ex) {
-      Get.snackbar('MoniFlora Mobile', 'Failed to login! $ex');
+      Get.snackbar(
+        'MoniFlora Mobile',
+        'Failed to login! $ex',
+        colorText: kAccentWhite,
+        backgroundColor: kAccentRed,
+      );
       log('${ex.code}: ${ex.stackTrace}', name: 'Login Error');
     }
   }
@@ -50,6 +55,13 @@ class _AuthPageViewsState extends State<AuthPageViews> {
                   await signInWithGoogle();
 
                   if (FirebaseAuth.instance.currentUser != null) {
+                    Get.snackbar(
+                      'MoniFlora',
+                      'Welcome back, ${FirebaseAuth.instance.currentUser?.displayName}!',
+                      colorText: kAccentBlack,
+                      backgroundColor: kAccentGrey,
+                    );
+
                     Get.off(
                       () => const HomePageViews(),
                       transition: Transition.leftToRight,

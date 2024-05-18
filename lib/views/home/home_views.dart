@@ -13,14 +13,10 @@ class _HomePageViewsState extends State<HomePageViews> {
   final _sharedPrefs = SharedPreferenceService();
   final _nameController = TextEditingController();
 
-  RxDouble temperature = 26.5.obs;
-  RxInt intensity = 1200.obs;
-  RxInt conductivity = 2000.obs;
-  RxInt moisture = 46.obs;
-
   @override
   Widget build(BuildContext context) {
     // log('${FirebaseAuth.instance.currentUser}', name: 'Login');
+
     if (!_sharedPrefs.checkKey('plantName') ||
         _sharedPrefs.getString('plantName') != '') {
       _nameController.text = _sharedPrefs.getString('plantName');
@@ -40,119 +36,143 @@ class _HomePageViewsState extends State<HomePageViews> {
             ],
           ),
         ),
-        child: SafeArea(
-          bottom: false,
-          child: RefreshIndicator(
-            onRefresh: () async {
-              log('test');
-              await _controller.getSingleLatestValue();
-            },
-            child: SingleChildScrollView(
-              // physics: const NeverScrollableScrollPhysics(),
-              child: Container(
-                padding: EdgeInsets.only(top: 16.h),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Image.asset(
-                      'assets/app-icon.png',
-                      scale: 0.75,
-                    ),
-                    SizedBox(height: 8.h),
-                    SizedBox(
-                      width: 165.w,
-                      child: TextFormField(
-                        maxLines: 1,
-                        maxLength: 16,
-                        textAlign: TextAlign.center,
-                        controller: _nameController,
-                        style: const TextStyle(
-                          overflow: TextOverflow.ellipsis,
-                          color: kAccentWhite,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        onChanged: (value) {
-                          _sharedPrefs.putString(
-                            'plantName',
-                            value.toString(),
-                          );
+        child: Obx(
+          () {
+            return _controller.sensorObs.value != null
+                ? Center(
+                    child: CircularProgressIndicator.adaptive(),
+                  )
+                : SafeArea(
+                    bottom: false,
+                    child: RefreshIndicator(
+                      onRefresh: () async {
+                        await _controller.getSingleLatestValue();
 
-                          log(
-                            _sharedPrefs.getString('plantName'),
-                            name: 'home-views-plantname',
-                          );
-                        },
-                        decoration: InputDecoration(
-                          isDense: true,
-                          enabledBorder: const OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: kAccentWhite,
-                              width: 0.8,
-                            ),
-                          ),
-                          focusedBorder: const OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: kAccentWhite,
-                              width: 0.8,
-                            ),
-                          ),
-                          hintText: 'Nama Tanaman',
-                          hintStyle: TextStyle(
-                            color: kAccentWhite.withOpacity(0.4),
-                          ),
-                          suffixIcon: const Icon(
-                            HeroIcons.pencil,
-                            color: kAccentWhite,
+                        // String uuid = _sharedPrefs.getString('sensor_uuid');
+                        // Sensor? data = await _controller.fetchLatestData(uuid);
+
+                        // if (data != null) {
+                        //   temperature.value = data.temperature;
+                        //   intensity.value = data.light;
+                        //   conductivity.value = data.conductivity;
+                        //   moisture.value = data.moisture;
+                        // } else {
+                        //   Get.snackbar(
+                        //     'MoniFlora',
+                        //     'Fetch no dataset monitored!',
+                        //     colorText: kAccentBlack,
+                        //     backgroundColor: kAccentGrey,
+                        //   );
+                        // }
+                      },
+                      child: SingleChildScrollView(
+                        // physics: const NeverScrollableScrollPhysics(),
+                        child: Container(
+                          padding: EdgeInsets.only(top: 16.h),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Image.asset(
+                                'assets/app-icon.png',
+                                scale: 0.75,
+                              ),
+                              SizedBox(height: 8.h),
+                              SizedBox(
+                                width: 165.w,
+                                child: TextFormField(
+                                  maxLines: 1,
+                                  maxLength: 16,
+                                  textAlign: TextAlign.center,
+                                  controller: _nameController,
+                                  style: const TextStyle(
+                                    overflow: TextOverflow.ellipsis,
+                                    color: kAccentWhite,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  onChanged: (value) {
+                                    _sharedPrefs.putString(
+                                      'plantName',
+                                      value.toString(),
+                                    );
+
+                                    // log(
+                                    //   _sharedPrefs.getString('plantName'),
+                                    //   name: 'home-views-plantname',
+                                    // );
+                                  },
+                                  decoration: InputDecoration(
+                                    isDense: true,
+                                    enabledBorder: const OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: kAccentWhite,
+                                        width: 0.8,
+                                      ),
+                                    ),
+                                    focusedBorder: const OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: kAccentWhite,
+                                        width: 0.8,
+                                      ),
+                                    ),
+                                    hintText: 'Nama Tanaman',
+                                    hintStyle: TextStyle(
+                                      color: kAccentWhite.withOpacity(0.4),
+                                    ),
+                                    suffixIcon: const Icon(
+                                      HeroIcons.pencil,
+                                      color: kAccentWhite,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(height: 16.h),
+                              Text(
+                                'Synced',
+                                style: TextStyle(
+                                  fontSize: 20.sp,
+                                  color: kAccentWhite,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              SizedBox(height: 16.h),
+                              Container(
+                                width: 1.sw,
+                                height: 1.sh - 200.h,
+                                padding: EdgeInsets.only(
+                                  top: 24.h,
+                                  right: 16.w,
+                                ),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.only(
+                                    topLeft: Radius.circular(48.r),
+                                    topRight: Radius.circular(48.r),
+                                  ),
+                                  color: kAccentWhite,
+                                ),
+                                child: Column(
+                                  children: [
+                                    SizedBox(
+                                      width: 1.sw,
+                                      child: buildCardAmbience(),
+                                    ),
+                                    SizedBox(
+                                      width: 1.sw,
+                                      child: buildCardSoil(),
+                                    ),
+                                    SizedBox(
+                                      width: 1.sw,
+                                      child: buildCardOverview(),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
                     ),
-                    SizedBox(height: 16.h),
-                    Text(
-                      'Synced',
-                      style: TextStyle(
-                        fontSize: 20.sp,
-                        color: kAccentWhite,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    SizedBox(height: 16.h),
-                    Container(
-                      width: 1.sw,
-                      height: 1.sh - 200.h,
-                      padding: EdgeInsets.only(
-                        top: 24.h,
-                        right: 16.w,
-                      ),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(48.r),
-                          topRight: Radius.circular(48.r),
-                        ),
-                        color: kAccentWhite,
-                      ),
-                      child: Column(
-                        children: [
-                          SizedBox(
-                            width: 1.sw,
-                            child: buildCardAmbience(),
-                          ),
-                          SizedBox(
-                            width: 1.sw,
-                            child: buildCardSoil(),
-                          ),
-                          SizedBox(
-                            width: 1.sw,
-                            child: buildCardOverview(),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
+                  );
+          },
         ),
       ),
     );
@@ -206,13 +226,18 @@ class _HomePageViewsState extends State<HomePageViews> {
                       ),
                     ),
                     Text(
-                      '$temperature˚C',
+                      '${_controller.temperatureObs.value}˚C',
                       style: TextStyle(
                         fontSize: 14.sp,
                         fontWeight: FontWeight.bold,
-                        color: temperature > 21 && temperature <= 26
+                        color: _controller.temperatureObs.value >= 22 &&
+                                _controller.temperatureObs.value <= 27
                             ? kPrimaryGreen
-                            : temperature > 26 && temperature <= 30
+                            : _controller.temperatureObs.value > 27 &&
+                                        _controller.temperatureObs.value <=
+                                            30 ||
+                                    _controller.temperatureObs.value >= 20 &&
+                                        _controller.temperatureObs.value < 22
                                 ? kAccentYellow
                                 : kAccentRed,
                       ),
@@ -234,13 +259,18 @@ class _HomePageViewsState extends State<HomePageViews> {
                       ),
                     ),
                     Text(
-                      '$intensity lx',
+                      '${_controller.intensityObs.value} lx',
                       style: TextStyle(
                         fontSize: 14.sp,
                         fontWeight: FontWeight.bold,
-                        color: intensity > 3000 && intensity <= 5000
+                        color: _controller.intensityObs.value >= 3000 &&
+                                _controller.intensityObs.value <= 5000
                             ? kPrimaryGreen
-                            : intensity > 5000 && intensity <= 6500
+                            : _controller.intensityObs.value > 5000 &&
+                                        _controller.intensityObs.value <=
+                                            6500 ||
+                                    _controller.intensityObs.value >= 1500 &&
+                                        _controller.intensityObs.value < 3000
                                 ? kAccentYellow
                                 : kAccentRed,
                       ),
@@ -303,13 +333,18 @@ class _HomePageViewsState extends State<HomePageViews> {
                       ),
                     ),
                     Text(
-                      '$conductivity µS/cm',
+                      '${_controller.conductivityObs.value} µS/cm',
                       style: TextStyle(
                         fontSize: 14.sp,
                         fontWeight: FontWeight.bold,
-                        color: conductivity > 1500 && conductivity <= 2000
+                        color: _controller.conductivityObs.value >= 1500 &&
+                                _controller.conductivityObs.value <= 2000
                             ? kPrimaryGreen
-                            : conductivity > 2000 && conductivity <= 3000
+                            : _controller.conductivityObs.value > 2000 &&
+                                        _controller.conductivityObs.value <=
+                                            3000 ||
+                                    _controller.conductivityObs.value >= 950 &&
+                                        _controller.conductivityObs.value < 1500
                                 ? kAccentYellow
                                 : kAccentRed,
                       ),
@@ -331,13 +366,17 @@ class _HomePageViewsState extends State<HomePageViews> {
                       ),
                     ),
                     Text(
-                      '$moisture %',
+                      '${_controller.moistureObs.value} %',
                       style: TextStyle(
                         fontSize: 14.sp,
                         fontWeight: FontWeight.bold,
-                        color: moisture > 40 && moisture <= 50
+                        color: _controller.moistureObs.value >= 35 &&
+                                _controller.moistureObs.value <= 50
                             ? kPrimaryGreen
-                            : moisture > 50 && moisture <= 60
+                            : _controller.moistureObs.value > 50 &&
+                                        _controller.moistureObs.value <= 60 ||
+                                    _controller.moistureObs.value >= 30 &&
+                                        _controller.moistureObs.value < 35
                                 ? kAccentYellow
                                 : kAccentRed,
                       ),
@@ -400,7 +439,7 @@ class _HomePageViewsState extends State<HomePageViews> {
                       ),
                     ),
                     Text(
-                      '-temp, +intensity',
+                      '-',
                       style: TextStyle(
                         fontSize: 14.sp,
                         fontWeight: FontWeight.bold,
@@ -424,7 +463,7 @@ class _HomePageViewsState extends State<HomePageViews> {
                       ),
                     ),
                     Text(
-                      'EXTREME',
+                      '-',
                       style: TextStyle(
                         fontSize: 14.sp,
                         fontWeight: FontWeight.bold,
