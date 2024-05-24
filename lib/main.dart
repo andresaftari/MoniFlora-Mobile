@@ -100,9 +100,13 @@ class _MoniFloraSplashViewsState extends State<MoniFloraSplashViews> {
 
   @override
   Widget build(BuildContext context) {
-    return Image.asset(
-      'assets/splashscreen-bg.png',
-      fit: BoxFit.fill,
+    return SizedBox(
+      height: 1.sh,
+      width: 1.sw,
+      child: Image.asset(
+        'assets/splashscreen-bg.png',
+        fit: BoxFit.fill,
+      ),
     );
   }
 }

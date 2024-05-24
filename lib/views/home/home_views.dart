@@ -13,10 +13,46 @@ class _HomePageViewsState extends State<HomePageViews> {
   final _sharedPrefs = SharedPreferenceService();
   final _nameController = TextEditingController();
 
+  String setWarning() {
+    RxString warning = '-'.obs;
+
+    if (_controller.sensorObs.value != null) {
+      double temp = _controller.sensorObs.value!.temperature;
+      int light = _controller.sensorObs.value!.light;
+      int moisture = _controller.sensorObs.value!.moisture;
+      int ec = _controller.sensorObs.value!.conductivity;
+
+      if (temp >= 22 && temp <= 27) {
+        warning.value = '-';
+      } else {
+        warning.value = 'Temp should be 22°C to 27°C';
+      }
+
+      if (light >= 3500 && light <= 5000) {
+        warning.value = '-';
+      } else {
+        warning.value = 'Light should be 3500lx to 5000lx';
+      }
+
+      if (moisture >= 35 && moisture <= 50) {
+        warning.value = '-';
+      } else {
+        warning.value = 'Moisture should be 35% to 50%';
+      }
+
+      if (ec >= 1500 && ec <= 1000) {
+        warning.value = '-';
+      } else {
+        warning.value = 'EC should be 1500 to 2000';
+      }
+    }
+
+    return warning.value;
+  }
+
   @override
   Widget build(BuildContext context) {
     Future.delayed(const Duration(minutes: 5), () {
-      _controller.getSingleLatestValue();
       _controller.predictLatestData();
     });
 
@@ -44,14 +80,29 @@ class _HomePageViewsState extends State<HomePageViews> {
         child: Obx(
           () {
             return _controller.sensorObs.value == null
-                ? const Center(
-                    child: CircularProgressIndicator.adaptive(),
+                ? SafeArea(
+                    child: SizedBox(
+                      height: 1.sh,
+                      width: 1.sw,
+                      child: const Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Center(
+                            child: CircularProgressIndicator.adaptive(),
+                          ),
+                          Text(
+                            'Syncing data...',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ],
+                      ),
+                    ),
                   )
                 : SafeArea(
                     bottom: false,
                     child: RefreshIndicator(
                       onRefresh: () async {
-                        await _controller.getSingleLatestValue();
+                        await _controller.trainAndTestRF();
                         await _controller.predictLatestData();
                       },
                       child: SingleChildScrollView(
@@ -140,21 +191,23 @@ class _HomePageViewsState extends State<HomePageViews> {
                               ),
                               SizedBox(height: 16.h),
                               Obx(
-                                () => _controller.sensorObs.value != null ? Text(
-                                  'Synced',
-                                  style: TextStyle(
-                                    fontSize: 20.sp,
-                                    color: kAccentWhite,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ) : Text(
-                                  'Not Synced',
-                                  style: TextStyle(
-                                    fontSize: 20.sp,
-                                    color: kAccentWhite,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
+                                () => _controller.sensorObs.value != null
+                                    ? Text(
+                                        'Synced',
+                                        style: TextStyle(
+                                          fontSize: 20.sp,
+                                          color: kAccentWhite,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      )
+                                    : Text(
+                                        'Not Synced',
+                                        style: TextStyle(
+                                          fontSize: 20.sp,
+                                          color: kAccentWhite,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
                               ),
                               SizedBox(height: 16.h),
                               Container(
@@ -171,21 +224,53 @@ class _HomePageViewsState extends State<HomePageViews> {
                                   ),
                                   color: kAccentWhite,
                                 ),
-                                child: Column(
-                                  children: [
-                                    SizedBox(
-                                      width: 1.sw,
-                                      child: buildCardAmbience(),
-                                    ),
-                                    SizedBox(
-                                      width: 1.sw,
-                                      child: buildCardSoil(),
-                                    ),
-                                    SizedBox(
-                                      width: 1.sw,
-                                      child: buildCardOverview(),
-                                    ),
-                                  ],
+                                child: StreamBuilder<Sensor?>(
+                                  stream: _controller.getSingleLatestValue(),
+                                  builder: (context, snapshot) {
+                                    if (snapshot.data != null &&
+                                        snapshot.hasData) {
+                                      return Column(
+                                        children: [
+                                          SizedBox(
+                                            width: 1.sw,
+                                            child: buildCardAmbience(
+                                              snapshot.data!.temperature
+                                                  .toDouble(),
+                                              snapshot.data!.light,
+                                            ),
+                                          ),
+                                          SizedBox(
+                                            width: 1.sw,
+                                            child: buildCardSoil(
+                                              snapshot.data!.conductivity,
+                                              snapshot.data!.moisture,
+                                            ),
+                                          ),
+                                          SizedBox(
+                                            width: 1.sw,
+                                            child: buildCardOverview(),
+                                          ),
+                                        ],
+                                      );
+                                    } else {
+                                      return Column(
+                                        children: [
+                                          SizedBox(
+                                            width: 1.sw,
+                                            child: buildCardAmbience(0.0, 0),
+                                          ),
+                                          SizedBox(
+                                            width: 1.sw,
+                                            child: buildCardSoil(0, 0),
+                                          ),
+                                          SizedBox(
+                                            width: 1.sw,
+                                            child: buildCardOverview(),
+                                          ),
+                                        ],
+                                      );
+                                    }
+                                  },
                                 ),
                               ),
                             ],
@@ -200,7 +285,7 @@ class _HomePageViewsState extends State<HomePageViews> {
     );
   }
 
-  Card buildCardAmbience() {
+  Card buildCardAmbience(double temp, int light) {
     return Card(
       elevation: 1,
       child: Container(
@@ -248,7 +333,7 @@ class _HomePageViewsState extends State<HomePageViews> {
                       ),
                     ),
                     Text(
-                      '${_controller.temperatureObs.value}˚C',
+                      '$temp ˚C',
                       style: TextStyle(
                         fontSize: 14.sp,
                         fontWeight: FontWeight.bold,
@@ -281,7 +366,7 @@ class _HomePageViewsState extends State<HomePageViews> {
                       ),
                     ),
                     Text(
-                      '${_controller.intensityObs.value} lx',
+                      '$light lx',
                       style: TextStyle(
                         fontSize: 14.sp,
                         fontWeight: FontWeight.bold,
@@ -307,7 +392,7 @@ class _HomePageViewsState extends State<HomePageViews> {
     );
   }
 
-  Card buildCardSoil() {
+  Card buildCardSoil(int ec, int moisture) {
     return Card(
       elevation: 1,
       child: Container(

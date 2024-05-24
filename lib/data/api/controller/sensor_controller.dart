@@ -35,35 +35,75 @@ class SensorController extends GetxController {
   void onInit() async {
     _sensorBox = SensorDB.sensorBox;
 
-    await trainRF();
-    await getSingleLatestValue();
+    await trainAndTestRF();
     await predictLatestData();
 
     super.onInit();
   }
 
-  Future<void> trainRF() async {
+  Future<void> trainAndTestRF() async {
     try {
-      final List<Map<String, num>> trainingData = [];
-      final List<String> trainingTarget = [];
+      final List<Map<String, num>> allData = [];
+      final List<String> allTargets = [];
 
-      final data = _sensorBox.values.toList();
+      // Retrieve data from Firebase or any other source
+      final snap = await ref.child('sensor').limitToFirst(480).get();
+      
 
-      for (final sensor in data) {
-        trainingData.add({
-          'temperature': sensor.temperature.toDouble(),
-          'light': sensor.light.toDouble(),
-          'conductivity': sensor.conductivity.toDouble(),
-          'moisture': sensor.moisture.toDouble(),
-        });
+      if (snap.exists) {
+        for (var child in snap.children) {
+          var data = child.value;
+          Map<String, dynamic> dataDecode = json.decode(jsonEncode(data));
 
-        trainingTarget.add(determineCondition(sensor));
+          Sensor sensor = Sensor(
+            uuid: child.key,
+            light: dataDecode['light'],
+            temperature: dataDecode['temperature'].toDouble(),
+            conductivity: dataDecode['conductivity'],
+            moisture: dataDecode['moisture'],
+            localName: dataDecode['localname'],
+            bioName: dataDecode['bioname'],
+            dateTime: DateFormat('dd MMMM yyyy HH:mm:ss').format(
+              DateTime.fromMillisecondsSinceEpoch(dataDecode['timestamp']),
+            ),
+          );
+
+          String condition = determineCondition(sensor);
+
+          // Sample data in map format
+          allData.add(sensor.toJson());
+          allTargets.add(condition);
+        }
+
+        // Split data (60% for training and 40% for testing)
+        final int splitIndex = (0.7 * allData.length).toInt();
+
+        // Training
+        final List<Map<String, num>> trainingData = allData.sublist(
+          0,
+          splitIndex,
+        );
+        final List<String> trainingTargets = allTargets.sublist(0, splitIndex);
+
+        // Testing
+        final List<Map<String, num>> testData = allData.sublist(splitIndex);
+        final List<String> testTargets = allTargets.sublist(splitIndex);
+
+        // Train the RF
+        forest.fit(trainingData, trainingTargets);
+        log('Model training completed', name: 'rf-model');
+
+        // Evaluate the test performance
+        final double score = forest.score(testData, testTargets);
+        log('RandomForest Model Score: $score', name: 'rf-model');
+      } else {
+        log('No data found in Firebase', name: 'rf-model');
       }
-
-      forest.fit(trainingData, trainingTarget);
-      log('Model training completed', name: 'rf-model');
     } catch (e) {
-      log('Error training rf: $e', name: 'rf-model');
+      log(
+        'Error training and testing random forest model: $e',
+        name: 'rf-model',
+      );
     }
   }
 
@@ -91,19 +131,33 @@ class SensorController extends GetxController {
 
   Future<void> predictLatestData() async {
     try {
-      final Sensor? latestSensor = await getSingleLatestValue();
+      final snap = await ref.child('sensor').limitToLast(1).get();
 
-      if (latestSensor != null) {
-        final Map<String, num> inputData = {
-          'temperature': latestSensor.temperature.toDouble(),
-          'light': latestSensor.light.toDouble(),
-          'conductivity': latestSensor.conductivity.toDouble(),
-          'moisture': latestSensor.moisture.toDouble(),
-        };
+      if (snap.exists) {
+        final Sensor? latestSensor =
+            SensorDB.fetchLatestSensor(snap.children.last.key!);
+        sensorObs.value = latestSensor;
 
-        await runInference(inputData);
+        if (latestSensor != null) {
+          final Map<String, num> inputData = {
+            'temperature': latestSensor.temperature.toDouble(),
+            'light': latestSensor.light.toDouble(),
+            'conductivity': latestSensor.conductivity.toDouble(),
+            'moisture': latestSensor.moisture.toDouble(),
+          };
+
+          await runInference(inputData);
+        } else {
+          log(
+            'No latest sensor data available for prediction',
+            name: 'rf-model',
+          );
+        }
       } else {
-        log('No latest sensor data available for prediction', name: 'rf-model');
+        log(
+          'No latest sensor data available for prediction',
+          name: 'rf-model',
+        );
       }
     } catch (e) {
       log('Error predicting latest data: $e', name: 'rf-model');
@@ -121,15 +175,13 @@ class SensorController extends GetxController {
       conditionObs.value = predictOne;
 
       log('Inputs: $inputData', name: 'rf-model');
-      log('Outputs: $outputs', name: 'rf-model');
-      log('Prediction: $predictOne', name: 'rf-model');
       log('Prediction details: $predDetail', name: 'rf-model');
     } catch (e) {
       log('failed to load input data: $e', name: 'rf-model');
     }
   }
 
-  Future<Sensor?> getSingleLatestValue() async {
+  Stream<Sensor?> getSingleLatestValue() async* {
     try {
       final snap = await ref.child('sensor').limitToLast(1).get();
 
@@ -142,7 +194,7 @@ class SensorController extends GetxController {
         Sensor sensor = Sensor(
           uuid: uuid,
           light: dataDecode['light'],
-          temperature: dataDecode['temperature'],
+          temperature: dataDecode['temperature'].toDouble(),
           conductivity: dataDecode['conductivity'],
           moisture: dataDecode['moisture'],
           localName: dataDecode['localname'],
@@ -158,7 +210,7 @@ class SensorController extends GetxController {
         if (SensorDB.fetchLatestSensor(uuid!) == null) {
           await SensorDB.insertSensor(sensor);
         } else {
-          log(SensorDB.fetchLatestSensor(uuid).toString(), name: 'sensor-db');
+          // log(SensorDB.fetchLatestSensor(uuid).toString(), name: 'sensor-db');
           await SensorDB.updateSensor(
             _sensorBox.values.toList().indexWhere((e) => e.uuid == uuid),
             sensor,
@@ -170,14 +222,14 @@ class SensorController extends GetxController {
         conductivityObs.value = sensor.conductivity;
         moistureObs.value = sensor.moisture;
 
-        return sensor;
+        yield sensor;
       } else {
         log('No sensor data found in the database', name: 'sensor-db');
-        return null;
+        yield null;
       }
     } catch (e) {
       log('Error getting latest sensor value: $e', name: 'sensor-db');
-      return null;
+      yield null;
     }
   }
 

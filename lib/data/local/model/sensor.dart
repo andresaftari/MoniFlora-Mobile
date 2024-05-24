@@ -32,14 +32,11 @@ class Sensor extends HiveObject {
     required this.dateTime,
   });
 
-  Map<String, dynamic> toJson() => {
+  Map<String, num> toJson() => {
         'light': light,
         'temperature': temperature,
         'conductivity': conductivity,
         'moisture': moisture,
-        'localName': localName,
-        'bioName': bioName,
-        'timestamp': dateTime,
       };
 
   static Sensor fromJson(Map<dynamic, dynamic> json) => Sensor(
