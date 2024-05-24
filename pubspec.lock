@@ -185,6 +185,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.3.6"
+  decision_tree:
+    dependency: transitive
+    description:
+      name: decision_tree
+      sha256: fc711a19a903ed0b9565b899f84179e82214972a0639a207866c7f7cd7625c3d
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
   dio:
     dependency: "direct main"
     description:
@@ -344,14 +352,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.0.0"
-  fuzzy:
-    dependency: "direct main"
-    description:
-      name: fuzzy
-      sha256: af5fbd36f2f8de0663a5b562ef5ca209aea957e81a2f0e97f97475cfbed044ec
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.5.1"
   get:
     dependency: "direct main"
     description:
@@ -704,6 +704,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.2.3"
+  random_forest:
+    dependency: "direct main"
+    description:
+      name: random_forest
+      sha256: a23550b1be05267679a06fe159a1504d467e1c340d93ed808d27c276a3b64749
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
   shared_preferences:
     dependency: "direct main"
     description:
@@ -837,14 +845,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.2.0"
-  stringr:
-    dependency: transitive
-    description:
-      name: stringr
-      sha256: "2846b6811c3cbb34c8937a35e623986e3fbf7203b3bb33ffe7f80e496ea3eff2"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.0"
   term_glyph:
     dependency: transitive
     description:

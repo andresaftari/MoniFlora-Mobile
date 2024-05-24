@@ -29,7 +29,7 @@ void main() async {
 
   // Init shared preferences
   await SharedPreferenceService.init();
-  Get.lazyPut(() => SensorController());
+  Get.put(SensorController(), permanent: true);
 
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
@@ -50,6 +50,7 @@ class _MainAppState extends State<MainApp> {
     return ScreenUtilInit(
       ensureScreenSize: true,
       child: GetMaterialApp(
+        debugShowCheckedModeBanner: false,
         theme: ThemeData(
           fontFamily: 'Poppins',
         ),

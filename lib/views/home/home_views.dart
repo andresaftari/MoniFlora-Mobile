@@ -15,7 +15,12 @@ class _HomePageViewsState extends State<HomePageViews> {
 
   @override
   Widget build(BuildContext context) {
-    // log('${FirebaseAuth.instance.currentUser}', name: 'Login');
+    Future.delayed(const Duration(minutes: 5), () {
+      _controller.getSingleLatestValue();
+      _controller.predictLatestData();
+    });
+
+    // log('${_controller.outputs}', name: 'outputs');
 
     if (!_sharedPrefs.checkKey('plantName') ||
         _sharedPrefs.getString('plantName') != '') {
@@ -38,8 +43,8 @@ class _HomePageViewsState extends State<HomePageViews> {
         ),
         child: Obx(
           () {
-            return _controller.sensorObs.value != null
-                ? Center(
+            return _controller.sensorObs.value == null
+                ? const Center(
                     child: CircularProgressIndicator.adaptive(),
                   )
                 : SafeArea(
@@ -47,31 +52,39 @@ class _HomePageViewsState extends State<HomePageViews> {
                     child: RefreshIndicator(
                       onRefresh: () async {
                         await _controller.getSingleLatestValue();
-
-                        // String uuid = _sharedPrefs.getString('sensor_uuid');
-                        // Sensor? data = await _controller.fetchLatestData(uuid);
-
-                        // if (data != null) {
-                        //   temperature.value = data.temperature;
-                        //   intensity.value = data.light;
-                        //   conductivity.value = data.conductivity;
-                        //   moisture.value = data.moisture;
-                        // } else {
-                        //   Get.snackbar(
-                        //     'MoniFlora',
-                        //     'Fetch no dataset monitored!',
-                        //     colorText: kAccentBlack,
-                        //     backgroundColor: kAccentGrey,
-                        //   );
-                        // }
+                        await _controller.predictLatestData();
                       },
                       child: SingleChildScrollView(
                         // physics: const NeverScrollableScrollPhysics(),
                         child: Container(
-                          padding: EdgeInsets.only(top: 16.h),
+                          padding: EdgeInsets.only(top: 4.h),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
+                              Align(
+                                alignment: Alignment.topRight,
+                                child: Container(
+                                  margin: EdgeInsets.only(right: 16.w),
+                                  child: ElevatedButton(
+                                    onPressed: () async {
+                                      await FirebaseAuth.instance.signOut();
+
+                                      Get.off(() => const AuthPageViews());
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      elevation: 0,
+                                    ),
+                                    child: const Text(
+                                      'Logout',
+                                      style: TextStyle(
+                                        color: Colors.redAccent,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(height: 8.h),
                               Image.asset(
                                 'assets/app-icon.png',
                                 scale: 0.75,
@@ -126,12 +139,21 @@ class _HomePageViewsState extends State<HomePageViews> {
                                 ),
                               ),
                               SizedBox(height: 16.h),
-                              Text(
-                                'Synced',
-                                style: TextStyle(
-                                  fontSize: 20.sp,
-                                  color: kAccentWhite,
-                                  fontWeight: FontWeight.bold,
+                              Obx(
+                                () => _controller.sensorObs.value != null ? Text(
+                                  'Synced',
+                                  style: TextStyle(
+                                    fontSize: 20.sp,
+                                    color: kAccentWhite,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ) : Text(
+                                  'Not Synced',
+                                  style: TextStyle(
+                                    fontSize: 20.sp,
+                                    color: kAccentWhite,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
                               SizedBox(height: 16.h),
@@ -263,14 +285,14 @@ class _HomePageViewsState extends State<HomePageViews> {
                       style: TextStyle(
                         fontSize: 14.sp,
                         fontWeight: FontWeight.bold,
-                        color: _controller.intensityObs.value >= 3000 &&
+                        color: _controller.intensityObs.value >= 3500 &&
                                 _controller.intensityObs.value <= 5000
                             ? kPrimaryGreen
                             : _controller.intensityObs.value > 5000 &&
                                         _controller.intensityObs.value <=
                                             6500 ||
                                     _controller.intensityObs.value >= 1500 &&
-                                        _controller.intensityObs.value < 3000
+                                        _controller.intensityObs.value < 3500
                                 ? kAccentYellow
                                 : kAccentRed,
                       ),
@@ -463,11 +485,15 @@ class _HomePageViewsState extends State<HomePageViews> {
                       ),
                     ),
                     Text(
-                      '-',
+                      '${_controller.conditionObs}',
                       style: TextStyle(
                         fontSize: 14.sp,
                         fontWeight: FontWeight.bold,
-                        color: kAccentRed,
+                        color: _controller.conditionObs.value == 'Optimal'
+                            ? kPrimaryGreen
+                            : _controller.conditionObs.value == 'Caution'
+                                ? kAccentYellow
+                                : kAccentRed,
                       ),
                     ),
                   ],

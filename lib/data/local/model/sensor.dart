@@ -39,7 +39,7 @@ class Sensor extends HiveObject {
         'moisture': moisture,
         'localName': localName,
         'bioName': bioName,
-        'createdAt': dateTime,
+        'timestamp': dateTime,
       };
 
   static Sensor fromJson(Map<dynamic, dynamic> json) => Sensor(
@@ -49,12 +49,21 @@ class Sensor extends HiveObject {
         moisture: json['moisture'],
         localName: json['localname'],
         bioName: json['bioname'],
-        dateTime: json['createdAt'],
+        dateTime: json['timestamp'],
       );
 
   @override
   String toString() {
-    return '$uuid: $light, $temperature, $conductivity, $moisture, $localName, $bioName, $dateTime';
+    return '''
+      uuid: $uuid,
+      light: $light,
+      temperature: $temperature,
+      conductivity: $conductivity,
+      moisture: $moisture,
+      localName: $localName,
+      bioName: $bioName,
+      dateTime: $dateTime
+    ''';
   }
 
   // final Timestamp timestamp;
