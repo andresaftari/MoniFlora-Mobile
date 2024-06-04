@@ -25,7 +25,7 @@ dependencies:
   intl: ^0.19.0
   random_forest: ^1.0.0
   shared_preferences: ^2.2.3
-  # tflite_flutter: ^0.10.4
+  tflite_flutter: ^0.10.4
 
 dev_dependencies:
   build_runner: ^2.4.9

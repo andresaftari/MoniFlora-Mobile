@@ -13,6 +13,12 @@ class _HomePageViewsState extends State<HomePageViews> {
   final _sharedPrefs = SharedPreferenceService();
   final _nameController = TextEditingController();
 
+  @override
+  void initState() {
+    _controller.onInit();
+    super.initState();
+  }
+
   String setWarning() {
     RxString warning = '-'.obs;
 
@@ -25,25 +31,25 @@ class _HomePageViewsState extends State<HomePageViews> {
       if (temp >= 22 && temp <= 27) {
         warning.value = '-';
       } else {
-        warning.value = 'Temp should be 22°C to 27°C';
+        warning.value = 'Temp should be\n22°C to 27°C';
       }
 
       if (light >= 3500 && light <= 5000) {
         warning.value = '-';
       } else {
-        warning.value = 'Light should be 3500lx to 5000lx';
+        warning.value = 'Light should be\n3500lx to 5000lx';
       }
 
       if (moisture >= 35 && moisture <= 50) {
         warning.value = '-';
       } else {
-        warning.value = 'Moisture should be 35% to 50%';
+        warning.value = 'Moisture should be\n35% to 50%';
       }
 
-      if (ec >= 1500 && ec <= 1000) {
+      if (ec >= 1500 && ec <= 2000) {
         warning.value = '-';
       } else {
-        warning.value = 'EC should be 1500 to 2000';
+        warning.value = 'EC should be\n1500 to 2000';
       }
     }
 
@@ -102,11 +108,10 @@ class _HomePageViewsState extends State<HomePageViews> {
                     bottom: false,
                     child: RefreshIndicator(
                       onRefresh: () async {
-                        await _controller.trainAndTestRF();
                         await _controller.predictLatestData();
                       },
                       child: SingleChildScrollView(
-                        // physics: const NeverScrollableScrollPhysics(),
+                        physics: ScrollPhysics(),
                         child: Container(
                           padding: EdgeInsets.only(top: 4.h),
                           child: Column(
@@ -546,11 +551,11 @@ class _HomePageViewsState extends State<HomePageViews> {
                       ),
                     ),
                     Text(
-                      '-',
+                      setWarning(),
                       style: TextStyle(
                         fontSize: 14.sp,
                         fontWeight: FontWeight.bold,
-                        color: kAccentRed,
+                        color: kPrimaryGreen,
                       ),
                     ),
                   ],
