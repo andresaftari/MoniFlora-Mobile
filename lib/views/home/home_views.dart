@@ -20,7 +20,7 @@ class _HomePageViewsState extends State<HomePageViews> {
   }
 
   String setWarning() {
-    RxString warning = '-'.obs;
+    RxString warning = ''.obs;
 
     if (_controller.sensorObs.value != null) {
       double temp = _controller.sensorObs.value!.temperature;
@@ -28,29 +28,45 @@ class _HomePageViewsState extends State<HomePageViews> {
       int moisture = _controller.sensorObs.value!.moisture;
       int ec = _controller.sensorObs.value!.conductivity;
 
-      if (temp >= 22 && temp <= 27) {
-        warning.value = '-';
-      } else {
-        warning.value = 'Temp should be\n22°C to 27°C';
+      List<String> warnings = [];
+
+      if (temp < 22) {
+        warnings.add('Temp LOW');
+      } else if (temp > 27) {
+        warnings.add('Temp HIGH');
       }
 
-      if (light >= 3500 && light <= 5000) {
-        warning.value = '-';
-      } else {
-        warning.value = 'Light should be\n3500lx to 5000lx';
+      if (light < 3500) {
+        warnings.add('Light LOW');
+      } else if (light > 5000) {
+        warnings.add('Light HIGH');
       }
 
-      if (moisture >= 35 && moisture <= 50) {
-        warning.value = '-';
-      } else {
-        warning.value = 'Moisture should be\n35% to 50%';
+      if (moisture < 35) {
+        warnings.add('Moisture LOW');
+      } else if (moisture > 50) {
+        warnings.add('Moisture HIGH');
       }
 
-      if (ec >= 1500 && ec <= 2000) {
-        warning.value = '-';
-      } else {
-        warning.value = 'EC should be\n1500 to 2000';
+      if (ec < 1800) {
+        warnings.add('EC LOW');
+      } else if (ec > 2400) {
+        warnings.add('EC HIGH');
       }
+
+      if (warnings.isEmpty) {
+        warning.value = '-';
+      } else if (warnings.length == 4 &&
+          warnings.every((w) => w.contains('LOW'))) {
+        warning.value = 'All Params LOW';
+      } else if (warnings.length == 4 &&
+          warnings.every((w) => w.contains('HIGH'))) {
+        warning.value = 'All Params HIGH';
+      } else {
+        warning.value = warnings.join(', ');
+      }
+
+      log('warning: ${warning.value} - ${warnings.length}', name: 'home-views');
     }
 
     return warning.value;
@@ -58,12 +74,6 @@ class _HomePageViewsState extends State<HomePageViews> {
 
   @override
   Widget build(BuildContext context) {
-    Future.delayed(const Duration(minutes: 5), () {
-      _controller.predictLatestData();
-    });
-
-    // log('${_controller.outputs}', name: 'outputs');
-
     if (!_sharedPrefs.checkKey('plantName') ||
         _sharedPrefs.getString('plantName') != '') {
       _nameController.text = _sharedPrefs.getString('plantName');
@@ -83,208 +93,188 @@ class _HomePageViewsState extends State<HomePageViews> {
             ],
           ),
         ),
-        child: Obx(
-          () {
-            return _controller.sensorObs.value == null
-                ? SafeArea(
-                    child: SizedBox(
-                      height: 1.sh,
-                      width: 1.sw,
-                      child: const Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Center(
-                            child: CircularProgressIndicator.adaptive(),
-                          ),
-                          Text(
-                            'Syncing data...',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ],
-                      ),
-                    ),
-                  )
-                : SafeArea(
-                    bottom: false,
-                    child: RefreshIndicator(
-                      onRefresh: () async {
-                        await _controller.predictLatestData();
-                      },
-                      child: SingleChildScrollView(
-                        physics: ScrollPhysics(),
-                        child: Container(
-                          padding: EdgeInsets.only(top: 4.h),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Align(
-                                alignment: Alignment.topRight,
-                                child: Container(
-                                  margin: EdgeInsets.only(right: 16.w),
-                                  child: ElevatedButton(
-                                    onPressed: () async {
-                                      await FirebaseAuth.instance.signOut();
+        child: SafeArea(
+          bottom: false,
+          child: SingleChildScrollView(
+            physics: const ScrollPhysics(),
+            child: Container(
+              padding: EdgeInsets.only(top: 4.h),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Align(
+                    alignment: Alignment.topRight,
+                    child: Container(
+                      margin: EdgeInsets.only(right: 16.w),
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          await FirebaseAuth.instance.signOut();
 
-                                      Get.off(() => const AuthPageViews());
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                      elevation: 0,
-                                    ),
-                                    child: const Text(
-                                      'Logout',
-                                      style: TextStyle(
-                                        color: Colors.redAccent,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              SizedBox(height: 8.h),
-                              Image.asset(
-                                'assets/app-icon.png',
-                                scale: 0.75,
-                              ),
-                              SizedBox(height: 8.h),
-                              SizedBox(
-                                width: 165.w,
-                                child: TextFormField(
-                                  maxLines: 1,
-                                  maxLength: 16,
-                                  textAlign: TextAlign.center,
-                                  controller: _nameController,
-                                  style: const TextStyle(
-                                    overflow: TextOverflow.ellipsis,
-                                    color: kAccentWhite,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                  onChanged: (value) {
-                                    _sharedPrefs.putString(
-                                      'plantName',
-                                      value.toString(),
-                                    );
-
-                                    // log(
-                                    //   _sharedPrefs.getString('plantName'),
-                                    //   name: 'home-views-plantname',
-                                    // );
-                                  },
-                                  decoration: InputDecoration(
-                                    isDense: true,
-                                    enabledBorder: const OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                        color: kAccentWhite,
-                                        width: 0.8,
-                                      ),
-                                    ),
-                                    focusedBorder: const OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                        color: kAccentWhite,
-                                        width: 0.8,
-                                      ),
-                                    ),
-                                    hintText: 'Nama Tanaman',
-                                    hintStyle: TextStyle(
-                                      color: kAccentWhite.withOpacity(0.4),
-                                    ),
-                                    suffixIcon: const Icon(
-                                      HeroIcons.pencil,
-                                      color: kAccentWhite,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              SizedBox(height: 16.h),
-                              Obx(
-                                () => _controller.sensorObs.value != null
-                                    ? Text(
-                                        'Synced',
-                                        style: TextStyle(
-                                          fontSize: 20.sp,
-                                          color: kAccentWhite,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      )
-                                    : Text(
-                                        'Not Synced',
-                                        style: TextStyle(
-                                          fontSize: 20.sp,
-                                          color: kAccentWhite,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                              ),
-                              SizedBox(height: 16.h),
-                              Container(
-                                width: 1.sw,
-                                height: 1.sh - 200.h,
-                                padding: EdgeInsets.only(
-                                  top: 24.h,
-                                  right: 16.w,
-                                ),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.only(
-                                    topLeft: Radius.circular(48.r),
-                                    topRight: Radius.circular(48.r),
-                                  ),
-                                  color: kAccentWhite,
-                                ),
-                                child: StreamBuilder<Sensor?>(
-                                  stream: _controller.getSingleLatestValue(),
-                                  builder: (context, snapshot) {
-                                    if (snapshot.data != null &&
-                                        snapshot.hasData) {
-                                      return Column(
-                                        children: [
-                                          SizedBox(
-                                            width: 1.sw,
-                                            child: buildCardAmbience(
-                                              snapshot.data!.temperature
-                                                  .toDouble(),
-                                              snapshot.data!.light,
-                                            ),
-                                          ),
-                                          SizedBox(
-                                            width: 1.sw,
-                                            child: buildCardSoil(
-                                              snapshot.data!.conductivity,
-                                              snapshot.data!.moisture,
-                                            ),
-                                          ),
-                                          SizedBox(
-                                            width: 1.sw,
-                                            child: buildCardOverview(),
-                                          ),
-                                        ],
-                                      );
-                                    } else {
-                                      return Column(
-                                        children: [
-                                          SizedBox(
-                                            width: 1.sw,
-                                            child: buildCardAmbience(0.0, 0),
-                                          ),
-                                          SizedBox(
-                                            width: 1.sw,
-                                            child: buildCardSoil(0, 0),
-                                          ),
-                                          SizedBox(
-                                            width: 1.sw,
-                                            child: buildCardOverview(),
-                                          ),
-                                        ],
-                                      );
-                                    }
-                                  },
-                                ),
-                              ),
-                            ],
+                          Get.off(() => const AuthPageViews());
+                        },
+                        style: ElevatedButton.styleFrom(
+                          elevation: 0,
+                        ),
+                        child: const Text(
+                          'Logout',
+                          style: TextStyle(
+                            color: Colors.redAccent,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
                     ),
-                  );
-          },
+                  ),
+                  SizedBox(height: 8.h),
+                  Image.asset(
+                    'assets/app-icon.png',
+                    scale: 0.75,
+                  ),
+                  SizedBox(height: 8.h),
+                  SizedBox(
+                    width: 165.w,
+                    child: TextFormField(
+                      maxLines: 1,
+                      maxLength: 16,
+                      textAlign: TextAlign.center,
+                      controller: _nameController,
+                      style: const TextStyle(
+                        overflow: TextOverflow.ellipsis,
+                        color: kAccentWhite,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      onChanged: (value) {
+                        _sharedPrefs.putString(
+                          'plantName',
+                          value.toString(),
+                        );
+
+                        // log(
+                        //   _sharedPrefs.getString('plantName'),
+                        //   name: 'home-views-plantname',
+                        // );
+                      },
+                      decoration: InputDecoration(
+                        isDense: true,
+                        enabledBorder: const OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: kAccentWhite,
+                            width: 0.8,
+                          ),
+                        ),
+                        focusedBorder: const OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: kAccentWhite,
+                            width: 0.8,
+                          ),
+                        ),
+                        hintText: 'Nama Tanaman',
+                        hintStyle: TextStyle(
+                          color: kAccentWhite.withOpacity(0.4),
+                        ),
+                        suffixIcon: const Icon(
+                          HeroIcons.pencil,
+                          color: kAccentWhite,
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 16.h),
+                  Obx(
+                    () => _controller.sensorObs.value != null
+                        ? Text(
+                            'Synced',
+                            style: TextStyle(
+                              fontSize: 20.sp,
+                              color: kAccentWhite,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          )
+                        : Text(
+                            'Not Synced',
+                            style: TextStyle(
+                              fontSize: 20.sp,
+                              color: kAccentWhite,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                  ),
+                  SizedBox(height: 16.h),
+                  Container(
+                    width: 1.sw,
+                    height: 1.sh - 160.h,
+                    padding: EdgeInsets.only(
+                      top: 24.h,
+                      right: 16.w,
+                    ),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(48.r),
+                        topRight: Radius.circular(48.r),
+                      ),
+                      color: kAccentWhite,
+                    ),
+                    child: StreamBuilder<Sensor?>(
+                      stream: _controller.getSingleLatestValue(),
+                      builder: (context, snapshot) {
+                        if (snapshot.data != null && snapshot.hasData) {
+                          return Column(
+                            children: [
+                              SizedBox(
+                                width: 1.sw - 24.w,
+                                child: buildCardAmbience(
+                                  snapshot.data!.temperature.toDouble(),
+                                  snapshot.data!.light,
+                                ),
+                              ),
+                              SizedBox(
+                                width: 1.sw - 24.w,
+                                child: buildCardSoil(
+                                  snapshot.data!.conductivity,
+                                  snapshot.data!.moisture,
+                                ),
+                              ),
+                              SizedBox(
+                                width: 1.sw - 24.w,
+                                child: buildCardOverview(
+                                  moisture: snapshot.data!.moisture.toDouble(),
+                                  ec: snapshot.data!.conductivity.toDouble(),
+                                  temperature: snapshot.data!.temperature,
+                                  light: snapshot.data!.light.toDouble(),
+                                ),
+                              ),
+                            ],
+                          );
+                        } else {
+                          return Column(
+                            children: [
+                              SizedBox(
+                                width: 1.sw - 24.w,
+                                child: buildCardAmbience(0.0, 0),
+                              ),
+                              SizedBox(
+                                width: 1.sw - 24.w,
+                                child: buildCardSoil(0, 0),
+                              ),
+                              SizedBox(
+                                width: 1.sw - 24.w,
+                                child: buildCardOverview(
+                                  temperature: 0.0,
+                                  moisture: 0.0,
+                                  light: 0.0,
+                                  ec: 0.0,
+                                ),
+                              ),
+                            ],
+                          );
+                        }
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -503,7 +493,12 @@ class _HomePageViewsState extends State<HomePageViews> {
     );
   }
 
-  Card buildCardOverview() {
+  Card buildCardOverview({
+    required double temperature,
+    required double moisture,
+    required double light,
+    required double ec,
+  }) {
     return Card(
       elevation: 1,
       child: Container(
@@ -538,55 +533,74 @@ class _HomePageViewsState extends State<HomePageViews> {
               color: kAccentBlack,
             ),
             SizedBox(height: 4.h),
-            Row(
+            Column(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                Column(
-                  children: [
-                    Text(
-                      'Warning',
-                      style: TextStyle(
-                        fontSize: 14.sp,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      setWarning(),
-                      style: TextStyle(
-                        fontSize: 14.sp,
-                        fontWeight: FontWeight.bold,
-                        color: kPrimaryGreen,
-                      ),
-                    ),
-                  ],
+                Text(
+                  'Condition',
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-                Container(
-                  height: 50.h,
-                  width: 0.2.w,
-                  color: kAccentBlack,
+                StreamBuilder(
+                  stream: _controller.postPrediction(
+                    temperature: temperature,
+                    light: light,
+                    ec: ec,
+                    moisture: moisture,
+                  ),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+
+                      if (snapshot.connectionState == ConnectionState.done) {
+                        return Text(
+                          snapshot.data!.prediction,
+                          style: TextStyle(
+                            fontSize: 16.sp,
+                            fontWeight: FontWeight.bold,
+                            color: _controller.conditionObs.value == 'Optimal'
+                                ? kPrimaryGreen
+                                : _controller.conditionObs.value == 'Caution'
+                                    ? kAccentYellow
+                                    : kAccentRed,
+                          ),
+                        );
+                      }
+                    }
+
+                    return const Center(child: CircularProgressIndicator());
+                  },
                 ),
-                Column(
-                  children: [
-                    Text(
-                      'Condition',
-                      style: TextStyle(
-                        fontSize: 14.sp,
-                        fontWeight: FontWeight.bold,
+                SizedBox(height: 16.h),
+                Center(
+                  child: Column(
+                    children: [
+                      Text(
+                        'Warning',
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    Text(
-                      '${_controller.conditionObs}',
-                      style: TextStyle(
-                        fontSize: 14.sp,
-                        fontWeight: FontWeight.bold,
-                        color: _controller.conditionObs.value == 'Optimal'
-                            ? kPrimaryGreen
-                            : _controller.conditionObs.value == 'Caution'
-                                ? kAccentYellow
-                                : kAccentRed,
+                      Text(
+                        setWarning(),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.bold,
+                          color: _controller.conditionObs.value == 'Optimal'
+                              ? kPrimaryGreen
+                              : _controller.conditionObs.value == 'Caution'
+                                  ? kAccentYellow
+                                  : kAccentRed,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ],
             ),
