@@ -70,30 +70,30 @@ class MoniFloraSplashViews extends StatefulWidget {
 class _MoniFloraSplashViewsState extends State<MoniFloraSplashViews> {
   @override
   void initState() {
-    Timer(
-      const Duration(seconds: 3),
-      () {
-        if (FirebaseAuth.instance.currentUser != null) {
-          Get.off(
-            () => const HomePageViews(),
-            transition: Transition.leftToRight,
-          );
-        } else {
-          Navigator.pushReplacement(
-            context,
-            PageRouteBuilder(
-              pageBuilder: (_, __, ___) => const AuthPageViews(),
-              transitionsBuilder: (_, animation, __, child) {
-                return FadeTransition(
-                  opacity: animation,
-                  child: child,
-                );
-              },
-            ),
-          );
-        }
-      },
-    );
+    // Timer(
+    //   const Duration(seconds: 3),
+    //   () {
+    //     if (FirebaseAuth.instance.currentUser != null) {
+    //       Get.off(
+    //         () => const HomePageViews(),
+    //         transition: Transition.leftToRight,
+    //       );
+    //     } else {
+    //       Navigator.pushReplacement(
+    //         context,
+    //         PageRouteBuilder(
+    //           pageBuilder: (_, __, ___) => const AuthPageViews(),
+    //           transitionsBuilder: (_, animation, __, child) {
+    //             return FadeTransition(
+    //               opacity: animation,
+    //               child: child,
+    //             );
+    //           },
+    //         ),
+    //       );
+    //     }
+    //   },
+    // );
 
     super.initState();
   }

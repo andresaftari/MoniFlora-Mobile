@@ -13,7 +13,12 @@
           "package_name": "com.example.skripsyit"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "874509652120-pvbjrom0vtdi1d2e0s3uq94o0olpqa39.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDYe_4fdhX4xoQoiT6fi16r4lRoGRqF6lk"
@@ -21,7 +26,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "874509652120-pvbjrom0vtdi1d2e0s3uq94o0olpqa39.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "874509652120-otvgfh6kj0ckbj9q8nk9380s1tschod8.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.skripsyit"
+              }
+            }
+          ]
         }
       }
     }

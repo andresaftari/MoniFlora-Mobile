@@ -25,15 +25,9 @@ class DefaultFirebaseOptions {
       case TargetPlatform.iOS:
         return ios;
       case TargetPlatform.macOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for macos - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return macos;
       case TargetPlatform.windows:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for windows - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return windows;
       case TargetPlatform.linux:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for linux - '
@@ -73,6 +67,30 @@ class DefaultFirebaseOptions {
     projectId: 'moniflora-7d3a3',
     databaseURL: 'https://moniflora-7d3a3-default-rtdb.firebaseio.com',
     storageBucket: 'moniflora-7d3a3.appspot.com',
+    iosClientId: '874509652120-otvgfh6kj0ckbj9q8nk9380s1tschod8.apps.googleusercontent.com',
     iosBundleId: 'com.example.skripsyit',
   );
+
+  static const FirebaseOptions macos = FirebaseOptions(
+    apiKey: 'AIzaSyBXuGilfeW9KDcN-3YfK1WPBntv4aChuXg',
+    appId: '1:874509652120:ios:d29fe1c04559cde1f100ed',
+    messagingSenderId: '874509652120',
+    projectId: 'moniflora-7d3a3',
+    databaseURL: 'https://moniflora-7d3a3-default-rtdb.firebaseio.com',
+    storageBucket: 'moniflora-7d3a3.appspot.com',
+    iosClientId: '874509652120-otvgfh6kj0ckbj9q8nk9380s1tschod8.apps.googleusercontent.com',
+    iosBundleId: 'com.example.skripsyit',
+  );
+
+  static const FirebaseOptions windows = FirebaseOptions(
+    apiKey: 'AIzaSyBu9smNLtP-AkAxnQGztYElZVSPJuY6Mw4',
+    appId: '1:874509652120:web:7a5430e33dc80385f100ed',
+    messagingSenderId: '874509652120',
+    projectId: 'moniflora-7d3a3',
+    authDomain: 'moniflora-7d3a3.firebaseapp.com',
+    databaseURL: 'https://moniflora-7d3a3-default-rtdb.firebaseio.com',
+    storageBucket: 'moniflora-7d3a3.appspot.com',
+    measurementId: 'G-QC2KBYL53E',
+  );
+
 }

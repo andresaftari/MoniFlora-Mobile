@@ -286,7 +286,7 @@ class _HomePageViewsState extends State<HomePageViews> {
       child: Container(
         color: kAccentWhite,
         padding: EdgeInsets.only(
-          top: 16.h,
+          top: 4.h,
           right: 24.w,
           left: 24.w,
           bottom: 8.h,
@@ -393,7 +393,7 @@ class _HomePageViewsState extends State<HomePageViews> {
       child: Container(
         color: kAccentWhite,
         padding: EdgeInsets.only(
-          top: 16.h,
+          top: 4.h,
           right: 24.w,
           left: 24.w,
           bottom: 8.h,
@@ -575,7 +575,7 @@ class _HomePageViewsState extends State<HomePageViews> {
                     return const Center(child: CircularProgressIndicator());
                   },
                 ),
-                SizedBox(height: 16.h),
+                SizedBox(height: 8.h),
                 Center(
                   child: Column(
                     children: [
