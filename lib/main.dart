@@ -1,10 +1,12 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:skripsyit/data/api/controller/sensor_controller.dart';
@@ -70,43 +72,48 @@ class MoniFloraSplashViews extends StatefulWidget {
 class _MoniFloraSplashViewsState extends State<MoniFloraSplashViews> {
   @override
   void initState() {
-    // Timer(
-    //   const Duration(seconds: 3),
-    //   () {
-    //     if (FirebaseAuth.instance.currentUser != null) {
-    //       Get.off(
-    //         () => const HomePageViews(),
-    //         transition: Transition.leftToRight,
-    //       );
-    //     } else {
-    //       Navigator.pushReplacement(
-    //         context,
-    //         PageRouteBuilder(
-    //           pageBuilder: (_, __, ___) => const AuthPageViews(),
-    //           transitionsBuilder: (_, animation, __, child) {
-    //             return FadeTransition(
-    //               opacity: animation,
-    //               child: child,
-    //             );
-    //           },
-    //         ),
-    //       );
-    //     }
-    //   },
-    // );
+    Timer(
+      const Duration(seconds: 3),
+      () {
+        if (FirebaseAuth.instance.currentUser != null) {
+          Get.off(
+            () => const HomePageViews(),
+            transition: Transition.leftToRight,
+          );
+        } else {
+          Navigator.pushReplacement(
+            context,
+            PageRouteBuilder(
+              pageBuilder: (_, __, ___) => const AuthPageViews(),
+              transitionsBuilder: (_, animation, __, child) {
+                return FadeTransition(
+                  opacity: animation,
+                  child: child,
+                );
+              },
+            ),
+          );
+        }
+      },
+    );
 
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 1.sh,
-      width: 1.sw,
-      child: Image.asset(
-        'assets/splashscreen-bg.png',
-        fit: BoxFit.fill,
-      ),
-    );
+    return Platform.isAndroid || Platform.isIOS
+        ? SvgPicture.asset(
+            'assets/splash.svg',
+            height: 1.sh,
+            width: 1.sw,
+            fit: BoxFit.fill,
+          )
+        : SvgPicture.asset(
+            'assets/splash-dekstop.svg',
+            height: 1.sh,
+            width: 1.sw,
+            fit: BoxFit.fill,
+          );
   }
 }

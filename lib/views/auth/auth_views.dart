@@ -40,15 +40,33 @@ class _AuthPageViewsState extends State<AuthPageViews> {
     return Scaffold(
       body: Stack(
         children: [
-          Image.asset(
-            'assets/login-bg.png',
-            fit: BoxFit.fill,
-            scale: 0.5,
-          ),
+          Platform.isAndroid || Platform.isIOS
+              ? SvgPicture.asset(
+                  'assets/login-bg.svg',
+                  fit: BoxFit.cover,
+                )
+              : SvgPicture.asset(
+                  'assets/login-desktop.svg',
+                  fit: BoxFit.cover,
+                ),
           Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Center(child: Image.asset('assets/thumbnail.png')),
+              Platform.isAndroid || Platform.isIOS
+                  ? Center(
+                      child: SvgPicture.asset(
+                        'assets/logo-image.svg',
+                        height: 75.w,
+                        width: 75.w,
+                      ),
+                    )
+                  : Center(
+                      child: SvgPicture.asset(
+                        'assets/logo-image.svg',
+                        height: 60.w,
+                        width: 60.w,
+                      ),
+                    ),
               SizedBox(height: 16.h),
               ElevatedButton(
                 onPressed: () async {
@@ -71,26 +89,36 @@ class _AuthPageViewsState extends State<AuthPageViews> {
                 style: ElevatedButton.styleFrom(
                   elevation: 0,
                   backgroundColor: Colors.white,
-                  fixedSize: Size(1.sw - 140.w, 45.h),
+                  fixedSize: Platform.isAndroid || Platform.isIOS
+                      ? Size(1.sw - 140.w, 45.h)
+                      : Size(1.sw - 240.w, 60.h),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16.r),
                     side: BorderSide(
                       color: kAccentBlack,
-                      width: 0.5.w,
+                      width: 0.3.w,
                     ),
                   ),
                 ),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  mainAxisAlignment: Platform.isAndroid || Platform.isIOS
+                      ? MainAxisAlignment.spaceEvenly
+                      : MainAxisAlignment.center,
                   children: [
-                    Brand(
-                      Brands.google,
-                      size: 24.sp,
+                    Padding(
+                      padding: EdgeInsets.only(right: 8.w),
+                      child: Brand(
+                        Brands.google,
+                        size: Platform.isAndroid || Platform.isIOS
+                            ? 24.sp
+                            : 14.sp,
+                      ),
                     ),
                     Text(
                       'Login with Google',
                       style: TextStyle(
-                        fontSize: 14.sp,
+                        fontSize:
+                            Platform.isAndroid || Platform.isIOS ? 14.sp : 8.sp,
                         color: kAccentBlack,
                       ),
                     ),

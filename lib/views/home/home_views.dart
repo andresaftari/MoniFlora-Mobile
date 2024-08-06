@@ -20,8 +20,6 @@ class _HomePageViewsState extends State<HomePageViews> {
   }
 
   String setWarning() {
-    RxString warning = ''.obs;
-
     if (_controller.sensorObs.value != null) {
       double temp = _controller.sensorObs.value!.temperature;
       int light = _controller.sensorObs.value!.light;
@@ -54,22 +52,25 @@ class _HomePageViewsState extends State<HomePageViews> {
         warnings.add('EC HIGH');
       }
 
+      String warning;
       if (warnings.isEmpty) {
-        warning.value = '-';
+        warning = '-';
       } else if (warnings.length == 4 &&
           warnings.every((w) => w.contains('LOW'))) {
-        warning.value = 'All Params LOW';
+        warning = 'All Params LOW';
       } else if (warnings.length == 4 &&
           warnings.every((w) => w.contains('HIGH'))) {
-        warning.value = 'All Params HIGH';
+        warning = 'All Params HIGH';
       } else {
-        warning.value = warnings.join(', ');
+        warning = warnings.join('\n');
       }
 
-      log('warning: ${warning.value} - ${warnings.length}', name: 'home-views');
+      log('warning: $warning - ${warnings.length}', name: 'home-views');
+
+      return warning;
     }
 
-    return warning.value;
+    return '-';
   }
 
   @override
@@ -112,9 +113,7 @@ class _HomePageViewsState extends State<HomePageViews> {
 
                           Get.off(() => const AuthPageViews());
                         },
-                        style: ElevatedButton.styleFrom(
-                          elevation: 0,
-                        ),
+                        style: ElevatedButton.styleFrom(elevation: 0),
                         child: const Text(
                           'Logout',
                           style: TextStyle(
@@ -148,11 +147,6 @@ class _HomePageViewsState extends State<HomePageViews> {
                           'plantName',
                           value.toString(),
                         );
-
-                        // log(
-                        //   _sharedPrefs.getString('plantName'),
-                        //   name: 'home-views-plantname',
-                        // );
                       },
                       decoration: InputDecoration(
                         isDense: true,
@@ -202,7 +196,7 @@ class _HomePageViewsState extends State<HomePageViews> {
                   SizedBox(height: 16.h),
                   Container(
                     width: 1.sw,
-                    height: 1.sh - 160.h,
+                    height: 1.sh,
                     padding: EdgeInsets.only(
                       top: 24.h,
                       right: 16.w,
@@ -219,6 +213,7 @@ class _HomePageViewsState extends State<HomePageViews> {
                       builder: (context, snapshot) {
                         if (snapshot.data != null && snapshot.hasData) {
                           return Column(
+                            mainAxisAlignment: MainAxisAlignment.start,
                             children: [
                               SizedBox(
                                 width: 1.sw - 24.w,
@@ -243,10 +238,144 @@ class _HomePageViewsState extends State<HomePageViews> {
                                   light: snapshot.data!.light.toDouble(),
                                 ),
                               ),
+                              SizedBox(height: 8.h),
+                              // StreamBuilder<List<SensorResponse>>(
+                              //   stream: _controller.getAllSensor(),
+                              //   builder: (context, snapshot) {
+                              //     if (snapshot.hasData) {
+                              //       final sensorData = snapshot.data!;
+
+                              //       return SizedBox(
+                              //         height: Platform.isIOS
+                              //             ? 200.h
+                              //             : Platform.isAndroid
+                              //                 ? 220.h
+                              //                 : 240.h,
+                              //         width: 1.sw,
+                              //         child: SfCartesianChart(
+                              //           primaryXAxis: DateTimeAxis(
+                              //             dateFormat: DateFormat('MMM yyyy'),
+                              //             intervalType:
+                              //                 DateTimeIntervalType.auto,
+                              //             enableAutoIntervalOnZooming: true,
+                              //           ),
+                              //           zoomPanBehavior: ZoomPanBehavior(
+                              //             enablePanning: true,
+                              //             enablePinching: true,
+                              //             maximumZoomLevel: 0.5,
+                              //             enableDoubleTapZooming: true,
+                              //             zoomMode: ZoomMode.xy,
+                              //           ),
+                              //           enableAxisAnimation: true,
+                              //           series: [
+                              //             LineSeries<SensorResponse, DateTime>(
+                              //               dataSource: sensorData,
+                              //               xValueMapper: (data, _) => DateTime
+                              //                   .fromMillisecondsSinceEpoch(
+                              //                       data.dateTime),
+                              //               yValueMapper: (data, _) =>
+                              //                   data.conductivity,
+                              //               name: 'EC',
+                              //               color: kPrimaryGreen,
+                              //               width: 1.5,
+                              //             ),
+                              //           ],
+                              //           legend: const Legend(
+                              //             isVisible: true,
+                              //             position: LegendPosition.bottom,
+                              //           ),
+                              //           tooltipBehavior: TooltipBehavior(
+                              //             enable: true,
+                              //             shouldAlwaysShow: true,
+                              //           ),
+                              //         ),
+                              //       );
+                              //     }
+
+                              //     return const Text('No data');
+                              //   },
+                              // ),
+                              StreamBuilder<List<SensorResponse>>(
+                                stream: _controller.getAllSensor(),
+                                builder: (context, snapshot) {
+                                  if (snapshot.hasData) {
+                                    final sensorData = snapshot.data!;
+
+                                    // Get the latest 500 data points
+                                    final latestSensorData = sensorData.length >
+                                            500
+                                        ? sensorData
+                                            .sublist(sensorData.length - 500)
+                                        : sensorData;
+
+                                    final filteredData = latestSensorData
+                                        .where((data) => data.light > 600)
+                                        .toList();
+
+                                    return SizedBox(
+                                      height: Platform.isIOS
+                                          ? 200.h
+                                          : Platform.isAndroid
+                                              ? 220.h
+                                              : 240.h,
+                                      width: 1.sw,
+                                      child: SfCartesianChart(
+                                        title: ChartTitle(
+                                          text:
+                                              'Latest 500 EC Fluctuation (μS/cm)',
+                                          textStyle: TextStyle(
+                                            fontSize: 12.sp,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        primaryXAxis: DateTimeAxis(
+                                          dateFormat:
+                                              DateFormat('dd MMM yyyy HH:mm'),
+                                          intervalType:
+                                              DateTimeIntervalType.auto,
+                                          enableAutoIntervalOnZooming: true,
+                                        ),
+                                        zoomPanBehavior: ZoomPanBehavior(
+                                          enablePanning: true,
+                                          enablePinching: true,
+                                          enableDoubleTapZooming: true,
+                                          zoomMode: ZoomMode.xy,
+                                        ),
+                                        enableAxisAnimation: true,
+                                        series: [
+                                          LineSeries<SensorResponse, DateTime>(
+                                            dataSource: filteredData,
+                                            xValueMapper: (data, _) => DateTime
+                                                .fromMillisecondsSinceEpoch(
+                                              data.dateTime,
+                                            ),
+                                            yValueMapper: (data, _) =>
+                                                data.conductivity,
+                                            name: 'EC',
+                                            color: kPrimaryGreen,
+                                            width: 1.5,
+                                          ),
+                                        ],
+                                        legend: const Legend(
+                                          isVisible: true,
+                                          position: LegendPosition.bottom,
+                                        ),
+                                        tooltipBehavior: TooltipBehavior(
+                                          enable: true,
+                                          shouldAlwaysShow: true,
+                                        ),
+                                      ),
+                                    );
+                                  }
+
+                                  return const Text('No data');
+                                },
+                              ),
                             ],
                           );
                         } else {
                           return Column(
+                            mainAxisAlignment: MainAxisAlignment.start,
                             children: [
                               SizedBox(
                                 width: 1.sw - 24.w,
@@ -265,6 +394,7 @@ class _HomePageViewsState extends State<HomePageViews> {
                                   ec: 0.0,
                                 ),
                               ),
+                              SizedBox(height: 16.h),
                             ],
                           );
                         }
@@ -439,8 +569,8 @@ class _HomePageViewsState extends State<HomePageViews> {
                       style: TextStyle(
                         fontSize: 14.sp,
                         fontWeight: FontWeight.bold,
-                        color: _controller.conductivityObs.value >= 1500 &&
-                                _controller.conductivityObs.value <= 2000
+                        color: _controller.conductivityObs.value >= 1800 &&
+                                _controller.conductivityObs.value <= 2400
                             ? kPrimaryGreen
                             : _controller.conductivityObs.value > 2000 &&
                                         _controller.conductivityObs.value <=
@@ -552,10 +682,6 @@ class _HomePageViewsState extends State<HomePageViews> {
                   ),
                   builder: (context, snapshot) {
                     if (snapshot.hasData) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
-
                       if (snapshot.connectionState == ConnectionState.done) {
                         return Text(
                           snapshot.data!.prediction,
@@ -569,6 +695,10 @@ class _HomePageViewsState extends State<HomePageViews> {
                                     : kAccentRed,
                           ),
                         );
+                      }
+
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
                       }
                     }
 
@@ -586,18 +716,12 @@ class _HomePageViewsState extends State<HomePageViews> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      Text(
-                        setWarning(),
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 14.sp,
-                          fontWeight: FontWeight.bold,
-                          color: _controller.conditionObs.value == 'Optimal'
-                              ? kPrimaryGreen
-                              : _controller.conditionObs.value == 'Caution'
-                                  ? kAccentYellow
-                                  : kAccentRed,
-                        ),
+                      // Use Wrap widget for displaying warnings
+                      Wrap(
+                        alignment: WrapAlignment.center,
+                        spacing: 8, // space between items
+                        runSpacing: 4, // space between lines
+                        children: setWarningsWidgets(),
                       ),
                     ],
                   ),
@@ -608,5 +732,28 @@ class _HomePageViewsState extends State<HomePageViews> {
         ),
       ),
     );
+  }
+
+// Convert warnings to a list of widgets
+  List<Widget> setWarningsWidgets() {
+    final warnings = setWarning().split('\n');
+
+    return warnings.map((warning) {
+      return Container(
+        padding: EdgeInsets.all(4.r),
+        child: Text(
+          warning,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 14.sp,
+            color: warnings.length <= 2 || warnings.length == 1
+                ? kAccentYellow
+                : warnings.length >= 3
+                    ? kAccentRed
+                    : kAccentBlack,
+          ),
+        ),
+      );
+    }).toList();
   }
 }

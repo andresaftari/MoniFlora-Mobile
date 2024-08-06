@@ -5,7 +5,9 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
-import 'package:skripsyit/data/api/response/predict.dart';
+import 'package:retry/retry.dart';
+import 'package:skripsyit/data/api/response/predict_response.dart';
+import 'package:skripsyit/data/api/response/sensor_response.dart';
 import 'package:skripsyit/data/api/service/predict_service.dart';
 import 'package:skripsyit/data/local/db/sensor_db.dart';
 import 'package:skripsyit/data/local/model/sensor.dart';
@@ -52,7 +54,7 @@ class SensorController extends GetxController {
 
     response.fold(
       (l) {
-        // d.log(l.message, name: 'predict');
+        d.log(l.message, name: 'predict');
 
         pred = Prediction(
           prediction: 'Unknown',
@@ -68,6 +70,58 @@ class SensorController extends GetxController {
 
     // log('prediction: $pred', name: 'predict');
     yield pred;
+  }
+
+  Stream<List<SensorResponse>> getAllSensor() async* {
+    final r = RetryOptions(maxAttempts: 5, delayFactor: Duration(seconds: 2));
+
+    while (true) {
+      try {
+        // Fetch data and retry on permission error
+        final List<SensorResponse> sensors = await r.retry(
+          () async {
+            final snap = await ref.child('sensor').get();
+            List<SensorResponse> sensors = [];
+
+            if (snap.exists) {
+              snap.children.forEach((element) {
+                var dataDecode = SensorResponse.fromJson(
+                  json.decode(jsonEncode(element.value)),
+                );
+
+                sensors.add(
+                  SensorResponse(
+                    uuid: element.key,
+                    light: dataDecode.light,
+                    temperature: dataDecode.temperature.toDouble(),
+                    conductivity: dataDecode.conductivity,
+                    moisture: dataDecode.moisture,
+                    localName: dataDecode.localName,
+                    bioName: dataDecode.bioName,
+                    dateTime: dataDecode.dateTime,
+                  ),
+                );
+              });
+            } else {
+              d.log('Error fetching all sensor from Firebase',
+                  name: 'getAllSensor');
+            }
+
+            return sensors;
+          },
+          retryIf: (e) => e.toString().contains(
+              'Client doesn\'t have permission to access the desired data.'),
+        );
+
+        yield sensors;
+        break;
+      } catch (e) {
+        d.log('Error fetching all sensor value: $e',
+            name: 'getAllSensor-failed');
+        yield [];
+        await Future.delayed(Duration(seconds: 5)); // Wait before retrying
+      }
+    }
   }
 
   Stream<Sensor?> getSingleLatestValue() async* {

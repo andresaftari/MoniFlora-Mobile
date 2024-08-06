@@ -1,8 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.INTERNET"/>
+
     <application
-        android:label="MoniFlora Mobile"
-        android:name="MoniFlora Mobile"
-        android:icon="@mipmap/ic_launcher">
+        android:label="MoniFlora"
+        android:name="${applicationName}"
+        android:icon="@mipmap/icon_logo">
         <activity
             android:name=".MainActivity"
             android:exported="true"
