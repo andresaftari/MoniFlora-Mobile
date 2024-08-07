@@ -301,12 +301,12 @@ class _HomePageViewsState extends State<HomePageViews> {
                                   if (snapshot.hasData) {
                                     final sensorData = snapshot.data!;
 
-                                    // Get the latest 500 data points
-                                    final latestSensorData = sensorData.length >
-                                            500
-                                        ? sensorData
-                                            .sublist(sensorData.length - 500)
-                                        : sensorData;
+                                    // Get the latest 100 data points
+                                    final latestSensorData =
+                                        sensorData.length > 50
+                                            ? sensorData
+                                                .sublist(sensorData.length - 50)
+                                            : sensorData;
 
                                     final filteredData = latestSensorData
                                         .where((data) => data.light > 600)
@@ -322,17 +322,16 @@ class _HomePageViewsState extends State<HomePageViews> {
                                       child: SfCartesianChart(
                                         title: ChartTitle(
                                           text:
-                                              'Latest 500 EC Fluctuation (μS/cm)',
+                                              'Latest 50 EC Fluctuation (μS/cm)',
                                           textStyle: TextStyle(
                                             fontSize: 12.sp,
                                             fontWeight: FontWeight.bold,
                                           ),
                                         ),
                                         primaryXAxis: DateTimeAxis(
-                                          dateFormat:
-                                              DateFormat('dd MMM yyyy HH:mm'),
+                                          dateFormat: DateFormat('MMM yyyy'),
                                           intervalType:
-                                              DateTimeIntervalType.auto,
+                                              DateTimeIntervalType.hours,
                                           enableAutoIntervalOnZooming: true,
                                         ),
                                         zoomPanBehavior: ZoomPanBehavior(

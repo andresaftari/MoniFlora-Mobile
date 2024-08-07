@@ -9,4 +9,8 @@ This app is part of my thesis project, and its primary objective is to facilitat
 **3. Data Analysis:** Analyze data to predict potential issues and optimize plant care.
 
 ## Additional Resources:
-For more information about the dataset and machine learning model examples used in this app, check out the [Kaggle dataset](https://www.kaggle.com/datasets/andresaftari/moniflora-backup-rtdb/data).
+For more information about the dataset and machine learning model examples used in this app, check out my [Cherry Tomato Parameter dataset on Kaggle](https://www.kaggle.com/datasets/andresaftari/moniflora-backup-rtdb/data).
+
+For more information about the MoniFlora-CLI used to gather the sensor data and then upload them into Firebase RTDB, check out my [MoniFlora-CLI Repository](https://github.com/andresaftari/MoniFlora-Skripsi-CLI)
+
+For more information about the Random Forest model I used to predict the plant condition classification, take a look on my [Cherry Tomato Condition Prediction model on Kaggle](https://www.kaggle.com/code/andresaftari/cherry-tomato-condition-prediction)
